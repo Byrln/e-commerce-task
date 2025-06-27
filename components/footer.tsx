@@ -14,11 +14,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8" suppressHydrationWarning>
           <div className="md:col-span-1" suppressHydrationWarning>
             <Link href="/" className="text-2xl font-bold" suppressHydrationWarning>
-              Wave Fashion
+              Долгион Загвар
             </Link>
             <p className="mt-4 text-gray-600 dark:text-gray-400" suppressHydrationWarning>
-              Y2K glow-той stylish queen-д зориулсан. 00's popstar шиг
-              гялалзахыг хүсэж байвал манайхыг сонгон үйлчилээрэй. Чи бол main character. 💿💖✨
+              Орчин үеийн загварт дурлагсад зориулсан. Гялалзах
+              хүсэлтэй бол манайхыг сонгон үйлчилээрэй. Чи бол гол дүр. 💿💖✨
             </p>
             <div className="flex space-x-4 mt-6" suppressHydrationWarning>
               <motion.a
@@ -55,7 +55,7 @@ export default function Footer() {
           </div>
 
           <div suppressHydrationWarning>
-            <h3 className="text-lg font-semibold mb-4" suppressHydrationWarning>Shop</h3>
+            <h3 className="text-lg font-semibold mb-4" suppressHydrationWarning>Дэлгүүр</h3>
             <ul className="space-y-2" suppressHydrationWarning>
               <li suppressHydrationWarning>
                 <Link
@@ -156,7 +156,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 text-center text-gray-500 dark:text-gray-400 text-sm" suppressHydrationWarning>
           <p suppressHydrationWarning>
-            &copy; {clientDate ? clientDate.getFullYear() : ''} Wave. Бүх эрх хуулиар
+            &copy; {clientDate ? clientDate.getFullYear() : ''} Долгион Загвар. Бүх эрх хуулиар
             хамгаалагдсан.
           </p>
         </div>

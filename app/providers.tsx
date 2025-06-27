@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState } from "react"
+import { SessionProvider } from "next-auth/react"
 
 import { CartProvider } from "@/hooks/use-cart"
 import { Toaster } from "@/components/ui/toaster"
@@ -15,9 +16,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <CartProvider>
-      {mounted ? children : null}
-      {mounted && <Toaster />}
-    </CartProvider>
+    <SessionProvider>
+      <CartProvider>
+        {mounted ? children : null}
+        {mounted && <Toaster />}
+      </CartProvider>
+    </SessionProvider>
   )
 }

@@ -41,7 +41,7 @@ export default function AboutSection() {
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold text-center mb-12"
           >
-            Wave Fashion
+            Долгион Загвар
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -58,16 +58,16 @@ export default function AboutSection() {
             </motion.div>
 
             <motion.div variants={itemVariants} className="space-y-6">
-              <h3 className="text-2xl font-semibold">Our Philosophy 💿✨</h3>
+              <h3 className="text-2xl font-semibold">Бидний Философи 💿✨</h3>
               <p className="text-gray-700 dark:text-gray-300">
-                Fashion бол зүгээр нэг хувцас биш — энэ бол чиний супер хүч.
-                Манай цуглуулга бол comfy + iconic mix. Trendy yet timeless
-                эдүүдээр чамайг өөрийнхөөрөө байхад урам өгнө.
+                Загвар бол зүгээр нэг хувцас биш — энэ бол таны супер хүч.
+                Манай цуглуулга бол тав тухтай болон гайхалтай холимог. Трендийн боловч
+                мөнхийн эдлэлээр таныг өөрийнхөөрөө байхад урам өгнө.
               </p>
               <p className="text-gray-700 dark:text-gray-300">
-                Daily ootd чинь runway шиг санагдаж, mirror selfie чинь fire
-                байх ёстой. Бид чамд илүү confident, baddie мэдрэмж өгөх хувцсыг
-                л curate хийдэг.
+                Өдөр тутмын хувцаслалт тань гайхалтай харагдаж, толин дэрх зураг тань
+                гоё байх ёстой. Бид танд илүү итгэлтэй, гоё мэдрэмж өгөх хувцсыг
+                сонгон цуглуулдаг.
               </p>
               <div className="pt-4">
                 <div className="flex items-center space-x-4">
@@ -88,10 +88,10 @@ export default function AboutSection() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium">Be your own muse.</h4>
+                    <h4 className="font-medium">Өөрийн урам зориг бол.</h4>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      ✨ Don’t follow the trend — be the trend. ✨ Загварaa
-                      гялалзуул, queen! 💖
+                      ✨ Трендийг дагаж бүү яв — трендийг бий бол. ✨ Загвараа
+                      гялалзуул! 💖
                     </p>
                   </div>
                 </div>

@@ -42,7 +42,7 @@ export default function InstagramSection() {
         <div className="flex flex-col items-center mb-16 text-center">
           <div className="flex items-center gap-3 mb-4">
             <Instagram size={28} className="text-pink-500" />
-            <span className="text-xl font-medium">@wave_fashion</span>
+            <span className="text-xl font-medium">@dolgion_zagvar</span>
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 dark:from-pink-400 dark:to-violet-400">
@@ -93,7 +93,7 @@ export default function InstagramSection() {
                       <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 flex items-center justify-center">
                         <Instagram size={16} className="text-white" />
                       </div>
-                      <span className="font-medium">wave_fashion</span>
+                      <span className="font-medium">dolgion_zagvar</span>
                     </div>
                     <span className="text-sm text-gray-500 dark:text-gray-400">{post.date}</span>
                   </div>

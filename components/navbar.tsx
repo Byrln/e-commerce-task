@@ -4,21 +4,18 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { ShoppingBag, Menu, X, Moon, Sun } from "lucide-react"
+import { ShoppingBag, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useTheme } from "next-themes"
 import { useCart } from "@/hooks/use-cart"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { theme, setTheme } = useTheme()
   const { cart } = useCart()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
     const handleScroll = () => {
       setScrolled(window.scrollY > 10)
     }
@@ -48,7 +45,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4" suppressHydrationWarning>
         <div className="flex items-center justify-between h-16" suppressHydrationWarning>
           <Link href="/" className="text-2xl font-bold">
-            Wave Fashion
+            Долгион Загвар
           </Link>
 
           {/* Desktop Navigation */}
@@ -67,17 +64,7 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center space-x-4" suppressHydrationWarning>
-            {mounted && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-              </Button>
-            )}
-
+            <ThemeToggle />
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingBag size={20} />

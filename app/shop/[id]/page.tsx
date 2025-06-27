@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { products } from "@/lib/products";
+// import { products } from "@/lib/products"; // Removed static import
 import { useCart } from "@/hooks/use-cart";
 import { Star, ChevronRight } from "lucide-react";
 import ProductCard from "@/components/product-card";
@@ -44,21 +44,86 @@ export default function ProductPage() {
   const [isFullScreenCarousel, setIsFullScreenCarousel] = useState(false);
   const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
   
-  // Find product using the ID from params
-  const product = products.find((p) => p.id === productId);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch product data from API
+  useEffect(() => {
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
+
+  // Fetch similar products when main product is loaded
   useEffect(() => {
     if (product) {
-      // Ижил category-тэй product-уудыг санал болгох
-      const similar = _(products)
-        .filter((p) => p.category === product.category && p.id !== product.id)
-        .take(4) // lodash ашиглаад 4 н ижил product-уудыг санал болгох
-        .value();
-      setSimilarProducts(similar);
+      fetchSimilarProducts();
     }
   }, [product]);
 
-  // хэрвээ params-н id-р product-ыг олоогүй бол өгөх handler
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`/api/products/${productId}`);
+      if (!response.ok) {
+        throw new Error('Product not found');
+      }
+      const data = await response.json();
+      setProduct(data);
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      setError('Бүтээгдэхүүн ачаалахад алдаа гарлаа');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSimilarProducts = async () => {
+    try {
+      const response = await fetch(`/api/products?category=${product?.category}&limit=4`);
+      if (response.ok) {
+        const data = await response.json();
+        // Filter out current product from similar products
+        const similar = data.products.filter((p: Product) => p.id !== product?.id);
+        setSimilarProducts(similar.slice(0, 4));
+      }
+    } catch (error) {
+      console.error('Error fetching similar products:', error);
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="animate-pulse">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-gray-200 dark:bg-gray-700 rounded-lg h-96"></div>
+            <div className="space-y-4">
+              <div className="bg-gray-200 dark:bg-gray-700 rounded h-8 w-3/4"></div>
+              <div className="bg-gray-200 dark:bg-gray-700 rounded h-6 w-1/2"></div>
+              <div className="bg-gray-200 dark:bg-gray-700 rounded h-4 w-full"></div>
+              <div className="bg-gray-200 dark:bg-gray-700 rounded h-4 w-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold mb-4">{error}</h1>
+        <Button onClick={() => router.push("/shop")}>Дэлгүүрлүү буцах</Button>
+      </div>
+    );
+  }
+
+  // Product not found
   if (!product) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">

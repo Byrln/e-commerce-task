@@ -1,9 +1,8 @@
-"use client";
+"use client"
 
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import grainImage from "@/app/assets/images/grain.jpg";
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function HeroSection() {
   return (
@@ -59,11 +58,9 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-bold mb-6"
+          className="text-6xl md:text-8xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 dark:from-pink-400 dark:to-violet-400"
         >
-          Өөрийн{" "}
-          <span className="text-pink-600 dark:text-pink-400">Хэв маягаа</span>{" "}
-          Илэрхийл
+          Өөрийн <span className="italic">Загварыг</span> Илэрхийл
         </motion.h1>
 
         <motion.p
@@ -72,8 +69,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-700 dark:text-gray-300"
         >
-          Залуу үеийнхэнд зориулсан орчин үеийн загвар. Таны хэн болохыг
-          тодорхойлох хамгийн сүүлийн үеийн чиг хандлагыг нээгээрэй.
+          Таныг тодорхойлдог хамгийн сүүлийн үеийн трендүүдийг олж мэдээрэй. Шинэ үеийнхэнд зориулсан орчин үеийн загвар.
         </motion.p>
 
         <motion.div
@@ -83,20 +79,17 @@ export default function HeroSection() {
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
           <Link href="/shop">
-            <Button
-              size="lg"
-              className="bg-black hover:bg-gray-800 text-white text-lg px-8 py-6 rounded-full"
-            >
-              Дэлгүүртэй танилцах
+            <Button size="lg" className="bg-black hover:bg-gray-800 text-white text-lg px-8 py-6 rounded-full">
+              Худалдан Авах
+            </Button>
+          </Link>
+          <Link href="/#about">
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6 rounded-full border-2 hover:bg-black/5 dark:hover:bg-white/5">
+              Дэлгэрэнгүй
             </Button>
           </Link>
         </motion.div>
-        {/* Grain */}
-        <div
-          className="absolute inset-0 -z-30 opacity-10"
-          style={{ backgroundImage: `url(${grainImage.src})` }}
-        ></div>
       </div>
     </div>
-  );
+  )
 }

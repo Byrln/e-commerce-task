@@ -2,15 +2,14 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
 import { Providers } from "./providers"
+import { LayoutContent } from "@/components/layout-content"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin", "cyrillic"] })
 
 export const metadata = {
-  title: "Wave Fashion - Y2K Modern Fashion Brand",
-  description: "Discover our modern fashion collection for the young generation."
+  title: "Долгион Загвар - Орчин үеийн хувцасны брэнд",
+  description: "Залуу үеийнхэнд зориулсан орчин үеийн хувцасны цуглуулгыг олж мэдээрэй."
 }
 
 export default function RootLayout({
@@ -19,20 +18,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="mn" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <Providers>
-            {/* 
-              The suppressHydrationWarning attribute is used to suppress the warning about hydration mismatches.
-              This is particularly useful when browser extensions like Bitdefender add attributes like bis_skin_checked="1"
-              which can cause hydration mismatches.
-            */}
-            <div className="flex min-h-screen flex-col overflow-hidden" suppressHydrationWarning>
-              <Navbar />
-              <main className="flex-1" suppressHydrationWarning>{children}</main>
-              <Footer />
-            </div>
+            <LayoutContent>{children}</LayoutContent>
           </Providers>
         </ThemeProvider>
       </body>

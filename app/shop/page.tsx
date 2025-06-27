@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight, Filter, X } from "lucide-react"
 import ProductCard from "@/components/product-card"
 import ProductFilter from "@/components/product-filter"
-import { products } from "@/lib/products"
+// import { products } from "@/lib/products" // Removed static import
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { 
@@ -19,17 +19,52 @@ import {
   paginateProducts
 } from "@/lib/lodash-utils"
 
+interface Product {
+  id: string
+  name: string
+  price: number
+  description: string
+  images: string[]
+  category: string
+  features: string[]
+  inventory: number
+  avgRating: number
+  reviewCount: number
+}
+
 export default function ShopPage() {
-  const [filteredProducts, setFilteredProducts] = useState(products)
+  const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState({
     category: "all",
     priceRange: "all",
   })
   
-  // Анхны шүүлтүүрийн төлөвийг консолд харуулах
+  // Fetch products from API
   useEffect(() => {
-    console.log('Анхны шүүлтүүрийн төлөв:', filters);
+    fetchProducts()
   }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch('/api/products?limit=100') // Fetch all products
+      if (!response.ok) {
+        throw new Error('Failed to fetch products')
+      }
+      const data = await response.json()
+      setProducts(data.products)
+      setFilteredProducts(data.products)
+    } catch (err) {
+      setError('Бараа ачаалахад алдаа гарлаа')
+      console.error('Error fetching products:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
   const [currentPage, setCurrentPage] = useState(1)
 
   // Device-с хамаарч хуудас дээр хэдэн бараа харагдахыг тодорхойлно
@@ -122,16 +157,46 @@ export default function ShopPage() {
     pageNumbers.push(i)
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-violet-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Бараа ачаалж байна...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-violet-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={fetchProducts} className="bg-pink-500 hover:bg-pink-600">
+            Дахин оролдох
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="container mx-auto px-4 py-16">
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 dark:from-pink-400 dark:to-violet-400"
-      >
-        Бүх бүтээгдэхүүн
-      </motion.h1>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-violet-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 dark:from-pink-400 dark:to-violet-400">
+            Дэлгүүрийн Цуглуулга
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Манай тусгайлан сонгосон дээд зэргийн загварын хувцаснуудыг олж мэдээрэй
+          </p>
+        </motion.div>
 
       {/* Гар утасны шүүлтүүр харуулах товч */}
       <div className="md:hidden mb-6">
@@ -247,11 +312,12 @@ export default function ShopPage() {
               
               {/* Нийт хуудсан харагдах барааны тоон мэдээлэл харуулах */}
               <p className="text-center text-gray-500 dark:text-gray-400 mt-6">
-                Нийт {filteredProducts.length} бүтээгдэхүүнээс {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, filteredProducts.length)} харуулж байна
+                Нийт {filteredProducts.length} бүтээгдэхүүнээс {indexOfFirstProduct}-{Math.min(indexOfLastProduct, filteredProducts.length)} харуулж байна
               </p>
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   )

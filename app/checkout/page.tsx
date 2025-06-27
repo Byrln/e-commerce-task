@@ -14,7 +14,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
-import { ChevronLeft, CreditCard, Truck, Check } from "lucide-react";
+import { ChevronLeft, CreditCard, Truck, Check, Info, Copy } from "lucide-react";
+import BankTransferModal from "@/components/BankTransferModal";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -44,12 +45,29 @@ export default function CheckoutPage() {
     shippingMethod: "standard",
 
     // Payment method
-    paymentMethod: "credit",
+    paymentMethod: "bank",
   });
 
   const [subtotal, setSubtotal] = useState(0);
   const [shipping, setShipping] = useState(0);
   const [total, setTotal] = useState(0);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [referenceCode, setReferenceCode] = useState<string>("");
+
+  // Generate reference code
+  const generateReferenceCode = () => {
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `WF${timestamp}${random}`;
+  };
+
+  const bankDetails = {
+    bankName: 'Khan Bank',
+    accountNumber: '5771180385',
+    accountName: 'BAYARJAVKHLAN BATDORJ',
+    iban: '650005005771180385'
+  };
 
   useEffect(() => {
     // Calculate order totals
@@ -58,12 +76,20 @@ export default function CheckoutPage() {
       0
     );
     const newShipping =
-      formData.shippingMethod === "express" ? 15 : newSubtotal >= 50 ? 0 : 5.99;
+      formData.shippingMethod === "express" ? 15000 : 5000;
+    const newTotal = newSubtotal + newShipping;
 
     setSubtotal(newSubtotal);
     setShipping(newShipping);
-    setTotal(newSubtotal + newShipping);
+    setTotal(newTotal);
   }, [cart, formData.shippingMethod]);
+
+  useEffect(() => {
+    // Generate reference code on component mount
+    if (!referenceCode) {
+      setReferenceCode(generateReferenceCode());
+    }
+  }, [referenceCode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,20 +100,105 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      toast({
+        title: "Хуулагдлаа!",
+        description: "Мэдээлэл амжилттай хуулагдлаа."
+      });
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Алдаа",
+        description: "Хуулахад алдаа гарлаа.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('mn-MN').format(amount);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      toast({
-        title: "Захиалга амжилттай",
-        description: "Таны захиалгыг хүлээн авлаа. Баярлалаа!",
+    try {
+      // Debug cart items
+      console.log('Cart items being processed:', cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      })));
+
+      // Create order
+      const orderData = {
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        items: cart.map(item => ({
+          productId: String(item.id),
+          quantity: item.quantity,
+          price: item.price
+        })),
+        total: total,
+        shippingMethod: formData.shippingMethod,
+        paymentMethod: formData.paymentMethod
+      };
+
+      console.log('Order data being sent:', orderData);
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
       });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Order creation failed:', response.status, errorData);
+        throw new Error(`Failed to create order: ${response.status} - ${errorData}`);
+      }
+
+      const order = await response.json();
+
+      // Clear cart
       clearCart();
+
+      // Redirect based on payment method
+      if (formData.paymentMethod === 'bank') {
+        router.push(`/payment/${order.id}`);
+      } else {
+        toast({
+          title: "Захиалга амжилттай",
+          description: "Таны захиалгыг хүлээн авлаа. Баярлалаа!",
+        });
+        router.push("/checkout/success");
+      }
+    } catch (error) {
+      console.error('Error creating order:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast({
+        title: "Алдаа гарлаа",
+        description: `Захиалга үүсгэхэд алдаа гарлаа: ${errorMessage}`,
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-      router.push("/checkout/success");
-    }, 2000);
+    }
   };
 
   const nextStep = () => {
@@ -376,10 +487,19 @@ export default function CheckoutPage() {
                       className="space-y-3"
                     >
                       <div className="flex items-center space-x-3 border p-4 rounded-md">
-                        <RadioGroupItem value="credit" id="credit" />
+                        <RadioGroupItem value="bank" id="bank" />
+                        <Label htmlFor="bank" className="flex-1 cursor-pointer">
+                          <div className="font-medium">Банкны шилжүүлэг</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Банкны данс руу шилжүүлэг хийх
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="relative flex items-center space-x-3 border p-4 rounded-md opacity-50">
+                        <RadioGroupItem value="credit" id="credit" disabled />
                         <Label
                           htmlFor="credit"
-                          className="flex-1 cursor-pointer"
+                          className="flex-1 cursor-not-allowed"
                         >
                           <div className="font-medium">Кредит карт</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -391,26 +511,24 @@ export default function CheckoutPage() {
                           <div className="w-10 h-6 bg-red-500 rounded"></div>
                           <div className="w-10 h-6 bg-green-600 rounded"></div>
                         </div>
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 rounded-md">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Coming soon...</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-3 border p-4 rounded-md">
-                        <RadioGroupItem value="qpay" id="qpay" />
-                        <Label htmlFor="qpay" className="flex-1 cursor-pointer">
+                      <div className="relative flex items-center space-x-3 border p-4 rounded-md opacity-50">
+                        <RadioGroupItem value="qpay" id="qpay" disabled />
+                        <Label htmlFor="qpay" className="flex-1 cursor-not-allowed">
                           <div className="font-medium">QPay</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             Монгол банк, Хаан банк, Голомт банк
                           </div>
                         </Label>
                         <div className="w-10 h-6 bg-blue-500 rounded"></div>
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 rounded-md">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Coming soon...</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-3 border p-4 rounded-md">
-                        <RadioGroupItem value="cash" id="cash" />
-                        <Label htmlFor="cash" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Бэлнээр төлөх</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            Хүргэлтийн үед бэлнээр төлөх
-                          </div>
-                        </Label>
-                      </div>
+
                     </RadioGroup>
                   </div>
 
@@ -460,6 +578,130 @@ export default function CheckoutPage() {
                             placeholder="123"
                             required
                           />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.paymentMethod === "bank" && (
+                    <div className="space-y-6 mt-6 border-t pt-6">
+                      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-semibold text-lg">Банкны мэдээлэл</h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowBankModal(true);
+                            }}
+                            className="flex items-center space-x-2"
+                          >
+                            <Info className="w-4 h-4" />
+                            <span>Заавар</span>
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border">
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Банк:</span>
+                                <div className="font-medium">{bankDetails.bankName}</div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border">
+                              <div className="flex-1">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Дансны дугаар:</span>
+                                <div className="font-mono text-lg font-bold">{bankDetails.accountNumber}</div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  copyToClipboard(bankDetails.accountNumber, 'account');
+                                }}
+                                className="ml-2"
+                              >
+                                {copiedField === 'account' ? (
+                                  <Check className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border">
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Данс эзэн:</span>
+                                <div className="font-medium">{bankDetails.accountName}</div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border">
+                              <div className="flex-1">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">IBAN (сонголттой):</span>
+                                <div className="font-mono text-sm">{bankDetails.iban}</div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  copyToClipboard(bankDetails.iban, 'iban');
+                                }}
+                                className="ml-2"
+                              >
+                                {copiedField === 'iban' ? (
+                                  <Check className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 space-y-3">
+                          <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded">
+                            <div className="flex items-center space-x-2">
+                              <Info className="w-4 h-4 text-yellow-600" />
+                              <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                Төлөх дүн: ₮{formatAmount(total)}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <span className="text-sm text-blue-600 dark:text-blue-400">Лавлагаа код:</span>
+                                <div className="font-mono text-lg font-bold text-blue-700 dark:text-blue-300">{referenceCode}</div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  copyToClipboard(referenceCode, 'reference');
+                                }}
+                                className="ml-2"
+                              >
+                                {copiedField === 'reference' ? (
+                                  <Check className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </div>
+                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                              Гүйлгээний утгад энэ кодыг заавал бичнэ үү.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -524,6 +766,9 @@ export default function CheckoutPage() {
                         </p>
                       )}
                       {formData.paymentMethod === "qpay" && <p>QPay</p>}
+                      {formData.paymentMethod === "bank" && (
+                        <p>Банкны шилжүүлэг - Khan Bank</p>
+                      )}
                       {formData.paymentMethod === "cash" && (
                         <p>Бэлнээр төлөх</p>
                       )}
@@ -646,6 +891,14 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+      
+      <BankTransferModal 
+        isOpen={showBankModal}
+        onClose={() => setShowBankModal(false)}
+        bankDetails={bankDetails}
+        amount={total}
+        referenceCode={referenceCode}
+      />
     </div>
   );
 }
